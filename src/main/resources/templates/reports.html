@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Reports</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">IT</div>
+            <div>
+                <h1>TicketHub</h1>
+            </div>
+        </div>
+        <nav class="nav">
+            <a class="nav-item" th:href="@{/}" th:classappend="${currentPage == 'dashboard' || currentPage == 'ticket' ? 'active' : ''}">Dashboard</a>
+            <a class="nav-item" th:href="@{/tickets/overdue}" th:classappend="${currentPage == 'overdue' ? 'active' : ''}">Overdue</a>
+            <a class="nav-item" th:href="@{/reports}" th:classappend="${currentPage == 'reports' ? 'active' : ''}">Reports</a>
+            <a class="nav-item" th:href="@{/tickets/new}" th:classappend="${currentPage == 'new' ? 'active' : ''}">New Ticket</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Operations</p>
+                <h2>Support reports</h2>
+            </div>
+            <a class="primary-btn" th:href="@{/}">Back to dashboard</a>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card accent-blue">
+                <span class="stat-label">Total tickets</span>
+                <strong th:text="${totalTickets}">0</strong>
+            </div>
+            <div class="stat-card accent-amber">
+                <span class="stat-label">Most active assignee</span>
+                <strong th:text="${mostActiveAssignee}">Unassigned</strong>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h3>Status summary</h3>
+            </div>
+            <div class="filters">
+                <span class="filter-badge" th:each="entry : ${statusCounts.entrySet()}" th:text="${entry.key + ': ' + entry.value}">OPEN: 0</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h3>Priority summary</h3>
+            </div>
+            <div class="filters">
+                <span class="filter-badge" th:each="entry : ${priorityCounts.entrySet()}" th:text="${entry.key + ': ' + entry.value}">HIGH: 0</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h3>Assignee load</h3>
+            </div>
+            <div class="filters assignee-grid" th:if="${!assigneeCounts.isEmpty()}">
+                <span class="filter-badge" th:each="entry : ${assigneeCounts}" th:title="${entry.key}" th:text="${entry.key + ': ' + entry.value}">admin: 2</span>
+            </div>
+            <p class="comment-empty" th:if="${assigneeCounts.isEmpty()}">No active assignees yet.</p>
+        </section>
+    </main>
+</div>
+</body>
+</html>

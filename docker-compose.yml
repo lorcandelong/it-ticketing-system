@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/tickethub
+      DB_USERNAME: tickethub
+      DB_PASSWORD: change-me-before-deploying
+      DB_DRIVER_CLASS_NAME: org.postgresql.Driver
+      DB_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      APP_ADMIN_PASSWORD: change-me-admin
+      APP_TECH_PASSWORD: change-me-technician
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: tickethub
+      POSTGRES_USER: tickethub
+      POSTGRES_PASSWORD: change-me-before-deploying
+    ports:
+      - "5432:5432"
+    volumes:
+      - tickethub-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tickethub -d tickethub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  tickethub-data:

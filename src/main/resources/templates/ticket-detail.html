@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Details</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="app-shell compact-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">IT</div>
+            <div>
+                <h1>TicketHub</h1>
+            </div>
+        </div>
+        <nav class="nav">
+            <a class="nav-item" th:href="@{/}" th:classappend="${currentPage == 'dashboard' || currentPage == 'ticket' ? 'active' : ''}">Dashboard</a>
+            <a class="nav-item" th:href="@{/tickets/overdue}" th:classappend="${currentPage == 'overdue' ? 'active' : ''}">Overdue</a>
+            <a class="nav-item" th:href="@{/reports}" th:classappend="${currentPage == 'reports' ? 'active' : ''}">Reports</a>
+            <a class="nav-item" th:href="@{/tickets/new}" th:classappend="${currentPage == 'new' ? 'active' : ''}">New Ticket</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Ticket</p>
+                <h2 th:text="${ticket.title}">Ticket title</h2>
+            </div>
+            <a class="secondary-btn" th:href="@{/}">Back</a>
+        </header>
+
+        <section class="panel detail-panel">
+            <div class="detail-meta">
+                <span class="priority-chip"
+                      th:classappend="${ticket.priority.name() == 'URGENT' ? ' urgent' : (
+                                        ticket.priority.name() == 'HIGH' ? ' high' : (
+                                        ticket.priority.name() == 'MEDIUM' ? ' medium' : ' low'))}"
+                      th:text="${ticket.priority}">MEDIUM</span>
+
+                <span class="status-chip"
+                      th:classappend="${ticket.status.name() == 'OPEN' ? ' open' : (
+                                        ticket.status.name() == 'IN_PROGRESS' ? ' in-progress' : (
+                                        ticket.status.name() == 'CLOSED' ? ' closed' : ' closed'))}"
+                      th:text="${ticket.status}">OPEN</span>
+            </div>
+
+            <p class="detail-date" th:text="${#temporals.format(ticket.createdAt, 'MMM d, yyyy - h:mm a')}">May 12, 2026</p>
+            <p class="detail-assignee"><strong>Assignee:</strong> <span th:text="${ticket.assignee}">Unassigned</span></p>
+            <p class="detail-description" th:text="${ticket.description}">Description</p>
+
+            <form th:action="@{/tickets/{id}/assignee(id=${ticket.id})}" method="post" class="status-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label for="assignee">Assign to</label>
+                <select id="assignee" name="assignee">
+                    <option th:each="assignee : ${assigneeOptions}"
+                            th:value="${assignee}"
+                            th:text="${assignee}"
+                            th:selected="${assignee == ticket.assignee}">
+                    </option>
+                </select>
+                <button class="primary-btn" type="submit">Save assignee</button>
+            </form>
+
+            <form th:action="@{/tickets/{id}/status(id=${ticket.id})}" method="post" class="status-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label for="status">Update status</label>
+                <select id="status" name="status">
+                    <option th:each="status : ${T(com.lorcandelong.it_ticketing_system.model.TicketStatus).values()}"
+                            th:value="${status}"
+                            th:text="${status}"
+                            th:selected="${status == ticket.status}">
+                    </option>
+                </select>
+                <button class="primary-btn" type="submit">Save status</button>
+            </form>
+
+            <form th:action="@{/tickets/{id}/escalate(id=${ticket.id})}" method="post" class="status-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label>Escalation</label>
+                <div class="field-inline">
+                    <span class="filter-badge" th:text="${ticket.status}">OPEN</span>
+                    <button class="secondary-btn" type="submit">Advance status</button>
+                </div>
+            </form>
+
+            <div class="activity-panel">
+                <h3>Activity</h3>
+                <div class="activity-list" th:if="${!activities.isEmpty()}">
+                    <div class="activity-item" th:each="activity : ${activities}">
+                        <span class="activity-marker"></span>
+                        <div class="activity-content">
+                            <div class="activity-details" th:text="${activity.details}">Ticket updated</div>
+                            <div class="activity-meta">
+                                <strong th:text="${activity.actor}">System</strong>
+                                <span th:text="${#temporals.format(activity.createdAt, 'MMM d, yyyy - h:mm a')}">Time</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-empty" th:if="${activities.isEmpty()}">No activity recorded yet.</div>
+            </div>
+
+            <div class="comments-panel">
+                <h3>Comments</h3>
+                <div class="comment-list" th:if="${!comments.isEmpty()}">
+                    <div class="comment-item" th:each="comment : ${comments}">
+                        <div class="comment-time" th:text="${#temporals.format(comment.createdAt, 'MMM d, yyyy - h:mm a')}">Time</div>
+                        <div class="comment-message" th:text="${comment.message}">Message</div>
+                    </div>
+                </div>
+                <div class="comment-empty" th:if="${comments.isEmpty()}">No comments yet.</div>
+
+                <form th:action="@{/tickets/{id}/comment(id=${ticket.id})}" method="post" class="comment-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <label for="message">Add note</label>
+                    <textarea id="message" name="message" rows="4" maxlength="5000" placeholder="Add an update..."></textarea>
+                    <button class="primary-btn" type="submit">Add comment</button>
+                </form>
+
+                <form th:if="${isAdmin}" th:action="@{/tickets/{id}/delete(id=${ticket.id})}" method="post" class="delete-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="secondary-btn danger-btn" type="submit">Delete ticket</button>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
