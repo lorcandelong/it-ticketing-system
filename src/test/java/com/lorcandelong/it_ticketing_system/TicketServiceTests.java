@@ -20,7 +20,9 @@ class TicketServiceTests {
     @Autowired
     private TicketService ticketService;
 
-    @Test    @SuppressWarnings("null")    void canFindTicketsByStatusAndAssignee() {
+    @Test
+    @SuppressWarnings("null")
+    void canFindTicketsByStatusAndAssignee() {
         Ticket openTicket = ticketService.create("Wi-Fi outage", "Reception has no internet", TicketPriority.HIGH, "alice");
         ticketService.create("Access card request", "New starter access", TicketPriority.LOW, "bob");
         openTicket.setStatus(TicketStatus.IN_PROGRESS);

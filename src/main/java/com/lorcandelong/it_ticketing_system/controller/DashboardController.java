@@ -13,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,16 +23,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Controller
@@ -81,32 +81,32 @@ public class DashboardController {
                     .toList();
         }
 
-                tickets = tickets.stream()
-                    .sorted(Comparator.comparing(Ticket::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .toList();
+        tickets = tickets.stream()
+                .sorted(Comparator.comparing(Ticket::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
 
-            int pageSize = 10;
-            int totalPages = Math.max(1, (tickets.size() + pageSize - 1) / pageSize);
-            int pageNumber = Math.max(0, Math.min(page, totalPages - 1));
-            int pageStart = pageNumber * pageSize;
-            int pageEnd = Math.min(pageStart + pageSize, tickets.size());
-            var pageTickets = tickets.subList(pageStart, pageEnd);
-            Map<Long, String> slaByTicket = new LinkedHashMap<>();
-            for (Ticket ticket : tickets) {
-                slaByTicket.put(ticket.getId(), ticketService.calculateSlaStatus(ticket.getId()));
-            }
+        int pageSize = 10;
+        int totalPages = Math.max(1, (tickets.size() + pageSize - 1) / pageSize);
+        int pageNumber = Math.max(0, Math.min(page, totalPages - 1));
+        int pageStart = pageNumber * pageSize;
+        int pageEnd = Math.min(pageStart + pageSize, tickets.size());
+        var pageTickets = tickets.subList(pageStart, pageEnd);
+        Map<Long, String> slaByTicket = new LinkedHashMap<>();
+        for (Ticket ticket : tickets) {
+            slaByTicket.put(ticket.getId(), ticketService.calculateSlaStatus(ticket.getId()));
+        }
 
-            model.addAttribute("tickets", pageTickets);
-            model.addAttribute("filteredTicketCount", tickets.size());
-            model.addAttribute("pageNumber", pageNumber);
-            model.addAttribute("totalPages", totalPages);
-            model.addAttribute("hasPrevious", pageNumber > 0);
-            model.addAttribute("hasNext", pageNumber < totalPages - 1);
-            model.addAttribute("slaByTicket", slaByTicket);
-            model.addAttribute("totalTickets", visibleTickets.size());
-            model.addAttribute("openTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.OPEN).count());
-            model.addAttribute("inProgressTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.IN_PROGRESS).count());
-            model.addAttribute("closedTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.CLOSED).count());
+        model.addAttribute("tickets", pageTickets);
+        model.addAttribute("filteredTicketCount", tickets.size());
+        model.addAttribute("pageNumber", pageNumber);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("hasPrevious", pageNumber > 0);
+        model.addAttribute("hasNext", pageNumber < totalPages - 1);
+        model.addAttribute("slaByTicket", slaByTicket);
+        model.addAttribute("totalTickets", visibleTickets.size());
+        model.addAttribute("openTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.OPEN).count());
+        model.addAttribute("inProgressTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.IN_PROGRESS).count());
+        model.addAttribute("closedTickets", visibleTickets.stream().filter(ticket -> ticket.getStatus() == TicketStatus.CLOSED).count());
         model.addAttribute("slaCounts", Map.of(
                 "On track", tickets.stream().filter(ticket -> "On track".equals(ticketService.calculateSlaStatus(ticket.getId()))).count(),
                 "At risk", tickets.stream().filter(ticket -> "At risk".equals(ticketService.calculateSlaStatus(ticket.getId()))).count(),
