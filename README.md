@@ -1,4 +1,4 @@
-# TicketHub
+# IT-Ticketing-System
 
 A secure Spring Boot IT service desk application for managing ticket lifecycles, SLA risk, assignments, comments, CSV workflows, and audit history.
 
@@ -91,5 +91,5 @@ Create a ticket with JSON:
 - `service`: ticket rules, SLA calculation, validation, CSV processing, and auditing
 - `model`: JPA entities and domain enums
 - `repository`: Spring Data persistence interfaces
-- `templates` and `static`: responsive TicketHub interface
+- `templates` and `static`: responsive IT-Ticketing-System interface
 - `src/test`: service and security regression tests
